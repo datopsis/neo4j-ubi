@@ -158,6 +158,11 @@ def main():
         # Every live process, including the launcher and JVM, must be unprivileged.
         process_check = r'''
 set -eu
+readonly_root=false
+while read -r _ _ _ _ target options _; do
+  if [[ $target == / && ,$options, == *,ro,* ]]; then readonly_root=true; fi
+done < /proc/self/mountinfo
+$readonly_root
 for status in /proc/[0-9]*/status; do
   while read -r key a b c d; do
     case "$key" in

@@ -35,7 +35,7 @@ pagecache=${NEO4J_UBI_PAGECACHE:-256m}
 [[ $pagecache =~ ^[1-9][0-9]*[mg]$ ]] || fail 'NEO4J_UBI_PAGECACHE must be a positive integer with m or g suffix'
 export JAVA_HOME=/opt/java NEO4J_HOME=/opt/neo4j NEO4J_CONF=/run/neo4j
 export HOME=/run/neo4j
-cp /etc/neo4j/neo4j.conf /run/neo4j/neo4j.conf
+install -m 0600 /etc/neo4j/neo4j.conf /run/neo4j/neo4j.conf
 cp /etc/neo4j/logs.xml /run/neo4j/server-logs.xml
 cp /etc/neo4j/logs.xml /run/neo4j/user-logs.xml
 printf '\nserver.memory.heap.initial_size=%s\nserver.memory.heap.max_size=%s\nserver.memory.pagecache.size=%s\n' \

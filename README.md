@@ -2,7 +2,9 @@
 
 Security-oriented Neo4j Community **2026.10.2**, Temurin JRE **25.0.5+8**, and
 Red Hat UBI **9.8 Micro**. This is an unreleased first increment, not a supported
-or certified distribution. Repository packaging is Apache-2.0; Neo4j Community
+or certified distribution. The current candidate is blocked by
+[fixed High Jackson findings](docs/KNOWN-FINDINGS.md) on both architectures.
+Repository packaging is Apache-2.0; Neo4j Community
 is **GPL-3.0-or-later**. See [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES).
 
 The runtime uses UID 10001, has no package manager, and requires no Linux

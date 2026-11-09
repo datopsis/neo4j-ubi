@@ -167,7 +167,7 @@ for status in /proc/[0-9]*/status; do
   while read -r key a b c d; do
     case "$key" in
       Uid:) test "$a" != 0; test "$b" != 0; test "$c" != 0; test "$d" != 0 ;;
-      CapEff:|CapPrm:|CapBnd:) test "$a" = 0000000000000000 ;;
+      CapEff:|CapPrm:|CapBnd:|CapInh:|CapAmb:) test "$a" = 0000000000000000 ;;
       NoNewPrivs:) test "$a" = 1 ;;
     esac
   done < "$status"
@@ -176,6 +176,9 @@ for tool in rpm dnf microdnf yum curl wget gcc javac; do ! command -v "$tool"; d
 test ! -d /etc/yum.repos.d
 test ! -d /etc/pki/rpm-gpg
 test ! -e /run/neo4j/initial-password.args
+test -r /opt/neo4j/native/libjnidispatch.so
+test ! -w /opt/neo4j/native/libjnidispatch.so
+test ! -d /run/neo4j/.cache/JNA
 ! touch /etc/read-only-test
 '''
         run('exec', name, 'bash', '-c', process_check)

@@ -61,7 +61,12 @@
           "sha256": "baf95ffbf40ee014135f16fe33e343faf7ff1ca06509fd97cd988e6afeabf670"
         }
       ],
-      "bundle_sha256": "16e38e0e6200601693b10213e2a5443d20aceadbc6a05f06d9cacc75e8665b92"
+      "bundle_sha256": "c60f280126d8ca47f60f0f15391717f7d3a9f4dc3b691294608df64360446921",
+      "jna": {
+        "jar": "jna-5.19.1.jar",
+        "member": "com/sun/jna/linux-x86-64/libjnidispatch.so",
+        "sha256": "ca07953d595210082339753d9e818a1fdb40509a17a41914d9a2cb0d2df6b6af"
+      }
     },
     "arm64": {
       "jre": {
@@ -92,7 +97,12 @@
           "sha256": "2e7f193e67235130c10f5579c2d2ec92e22e4098b6d12fb2855d93b1540c60f7"
         }
       ],
-      "bundle_sha256": "59b2eee581f94126006562884278c8d051cfb24d06428aea2e8558f84a864c21"
+      "bundle_sha256": "ed91168cb9e1976592e8fd2481111621d332f1df6527f7360b70f5704ef86f93",
+      "jna": {
+        "jar": "jna-5.19.1.jar",
+        "member": "com/sun/jna/linux-aarch64/libjnidispatch.so",
+        "sha256": "f18fa2c973b2b9ea2dfa6d36d397e0bb743aa2aa09876e2a3b8c87a5e67bf8b6"
+      }
     }
   }
 }

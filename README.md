@@ -15,7 +15,7 @@ initial fixed profile.
 
 ## Build and checks
 
-Tools: Python 3.11+, curl, GnuPG, RPM/rpmkeys, ShellCheck, and Docker or Podman. Acquisition
+Tools: Python 3.11+, curl, GnuPG, RPM/rpmkeys, and Docker or Podman. Acquisition
 requires network access. The image assembly itself runs without network access
 or dependency resolution. Tools installed on the host are not image contents.
 
@@ -129,7 +129,7 @@ version; it does not guess a Neo4j upgrade. Review the candidate, update the
 Containerfile base defaults and notices, then rerun all checks. The read-only
 `update-locks.yml` uploads candidates and a diff; it cannot commit or open PRs.
 Python tool lock regeneration is documented in the `.in` file. Every dependency,
-including transitive dependencies, is hash pinned in `.txt`.
+including transitive dependencies and ShellCheck, is hash pinned in `.txt`.
 
 CI retains per-architecture SPDX SBOMs, complete Trivy/Grype JSON reports and
 runtime output for 14 days. Both scanners report all findings. A separate tested

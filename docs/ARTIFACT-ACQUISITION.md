@@ -34,7 +34,10 @@ individually. Acquisition tooling is not copied into the runtime.
 
 Archives are extracted only after verification. Traversal and special files are
 rejected; internal symlinks are materialized as regular files. Optional Neo4j
-labs/products are removed. The lock pins the resulting SHA256SUMS manifest;
+labs/products are removed. The selected architecture's JNA library is copied
+unchanged from the verified jar into `/opt/neo4j/native`, with its own locked
+member name and digest. JNA loads that read-only library with runtime unpacking
+disabled, so `/tmp` and `/run/neo4j` remain `noexec`. The lock pins the resulting SHA256SUMS manifest;
 assembly verifies its digest, every file and the file count, rejecting extra
 files or links. The build script reacquires/revalidates before every build.
 

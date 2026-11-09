@@ -11,6 +11,7 @@ import tarfile
 import tempfile
 import urllib.request
 import xml.etree.ElementTree as ET
+import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -103,6 +104,24 @@ def acquire(lock, arch, output, candidate=False):
         bundle.mkdir()
         extract(download(lock['neo4j']), bundle / 'neo4j')
         extract(jre, bundle / 'jre')
+        # JNA normally unpacks executable code into HOME/.cache. Materialize
+        # the architecture's verified library on the immutable image instead,
+        # so every writable application mount can remain noexec.
+        jars = list((bundle / 'neo4j/lib').glob('jna-*.jar'))
+        if len(jars) != 1:
+            raise ValueError('expected exactly one upstream JNA jar')
+        member = 'com/sun/jna/linux-' + {'amd64': 'x86-64', 'arm64': 'aarch64'}[arch] + '/libjnidispatch.so'
+        with zipfile.ZipFile(jars[0]) as jar:
+            native = jar.read(member)
+        record = {'jar': jars[0].name, 'member': member, 'sha256': digest(native)}
+        if candidate:
+            selected['jna'] = record
+        elif selected['jna'] != record:
+            raise ValueError('JNA native library differs from lock')
+        (bundle / 'neo4j/native').mkdir()
+        library = bundle / 'neo4j/native/libjnidispatch.so'
+        library.write_bytes(native)
+        library.chmod(0o444)
         # No optional plugins/products are shipped. Retain upstream notices.
         for name in ('labs', 'products'):
             shutil.rmtree(bundle / 'neo4j' / name, ignore_errors=True)

@@ -17,7 +17,7 @@ done
 
 # No VOLUME instruction: Docker must not silently allocate anonymous data storage.
 mounted=false
-while read -r _ _ _ target options rest; do
+while read -r _ _ _ _ target options rest; do
     if [[ $target == /data && ,$options, == *,rw,* ]]; then
         [[ $rest != *' - tmpfs '* ]] || fail '/data must be a durable volume, not tmpfs'
         mounted=true
@@ -53,7 +53,7 @@ else
     (( (8#$mode & 0007) == 0 )) || fail 'credential file must not be accessible to others (use 0400 or 0440)'
     secret_ro=false
     longest=0
-    while read -r _ _ _ target options _; do
+    while read -r _ _ _ _ target options _; do
         if [[ $secret == "$target" || $secret == "$target/"* || $target == / ]]; then
             if (( ${#target} > longest )); then
                 longest=${#target}
@@ -65,6 +65,7 @@ else
     $secret_ro || fail 'credential file must be on a read-only mount'
     [[ $(stat -c %s "$secret") -le 1024 ]] || fail 'credential file exceeds 1024 bytes'
     # One printable ASCII line, optionally terminated by a single LF.
+    [[ $(LC_ALL=C tr -d '\000' < "$secret" | wc -c) == $(stat -c %s "$secret") ]] || fail 'credential file must not contain NUL bytes'
     password=$(cat "$secret")
     LC_ALL=C
     export LC_ALL
@@ -73,6 +74,9 @@ else
     actual_bytes=$(stat -c %s "$secret")
     (( actual_bytes == expected_bytes || actual_bytes == expected_bytes + 1 )) || fail 'credential file must contain exactly one line'
     printf 'dbms.security.auth_enabled=true\n' >> /run/neo4j/neo4j.conf
+    if [[ -d /data/databases/system && ! -f /data/.neo4j-ubi-auth-initialized ]]; then
+        fail 'existing data lacks authenticated initialization marker; refusing possible upstream default credentials'
+    fi
     if [[ ! -d /data/databases/system ]]; then
         # Picocli @file expansion keeps the password out of argv and environment.
         escaped=${password//\\/\\\\}
@@ -83,6 +87,7 @@ else
         /opt/neo4j/bin/neo4j-admin dbms set-initial-password -- @/run/neo4j/initial-password.args \
             || fail 'initial credential setup failed'
         rm -f /run/neo4j/initial-password.args
+        touch /data/.neo4j-ubi-auth-initialized
         trap - EXIT
     fi
     unset password

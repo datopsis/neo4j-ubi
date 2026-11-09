@@ -16,11 +16,11 @@ IMAGE = os.environ.get('IMAGE', 'localhost/neo4j-ubi:dev')
 PREFIX = 'neo4j-test-' + secrets.token_hex(5)
 containers = []
 volumes = []
-password = secrets.token_urlsafe(32)
+password = '-' + secrets.token_urlsafe(32) + '"#\\ space'
 
 
 def run(*args, check=True):
-    return subprocess.run([RUNTIME, *args], check=check, text=True, capture_output=True)
+    return subprocess.run([RUNTIME, *args], check=check, text=True, capture_output=True, timeout=90)
 
 
 def volume():
@@ -131,6 +131,18 @@ def main():
         if RUNTIME == 'docker':
             subprocess.run(['sudo', 'chown', '10001:0', str(bad)], check=True)
         rejected(start('short-credential', data, bad), 'at least 16 printable')
+        for label, content, mode, diagnostic in [
+            ('empty', '', 0o440, 'at least 16 printable'),
+            ('multiline', password + '\nextra', 0o440, 'one line'),
+            ('nul', password + '\x00', 0o440, 'NUL bytes'),
+            ('world-readable', password, 0o444, 'must not be accessible to others'),
+        ]:
+            path = Path(temp) / label
+            path.write_text(content)
+            path.chmod(mode)
+            if RUNTIME == 'docker':
+                subprocess.run(['sudo', 'chown', '10001:0', str(path)], check=True)
+            rejected(start(label, data, path), diagnostic)
         name = start('server', data, secret)
         ready(name)
         components = query(name, 'CALL dbms.components() YIELD versions, edition RETURN versions[0], edition')[0]['row']
@@ -174,12 +186,14 @@ test ! -e /run/neo4j/initial-password.args
         assert query(name, 'MATCH (n:Smoke) RETURN n.id')[0]['row'] == [42]
         stop(name)
         print('PASS graceful shutdown and persistence across container replacement')
-        name = start('explicit-no-auth', volume(), extra=['-e', 'NEO4J_UBI_ALLOW_NO_AUTH=true'])
+        unauthenticated_data = volume()
+        name = start('explicit-no-auth', unauthenticated_data, extra=['-e', 'NEO4J_UBI_ALLOW_NO_AUTH=true'])
         ready(name)
         assert not request(name, 'RETURN 1', auth=False)['errors']
         assert 'authentication explicitly disabled' in logs(name)
         stop(name)
-        print('PASS explicit unauthenticated opt-out')
+        rejected(start('unsafe-auth-transition', unauthenticated_data, secret), 'lacks authenticated initialization marker')
+        print('PASS explicit unauthenticated opt-out and fail-closed auth re-enablement')
 
 
 if __name__ == '__main__':

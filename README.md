@@ -64,6 +64,12 @@ data it does **not** reset or rotate passwords: use Neo4j's authenticated user
 management, then update the secret manager. Back up the entire `/data` volume;
 never remove it to rotate credentials. Stop with a 45-second grace period.
 
+Authenticated initialization writes a non-secret marker in `/data`. Data first
+created with the no-auth opt-out, or an imported volume without that marker,
+is refused when authentication is enabled. This prevents re-enabling upstream
+default credentials. Migrating such data requires a separately qualified
+authentication recovery procedure; do not fabricate the marker.
+
 | Path | Mount and purpose |
 | --- | --- |
 | `/data` | Explicit writable durable bind/named volume; database, auth, transactions |

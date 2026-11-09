@@ -33,6 +33,20 @@ class PolicyTests(unittest.TestCase):
             with self.subTest(change=change), self.assertRaises(ValueError):
                 artifacts.validate(broken)
 
+    def test_corrupt_cached_artifact_is_rejected(self):
+        artifacts = module('artifacts')
+        with tempfile.TemporaryDirectory() as temp:
+            artifacts.ROOT = Path(temp)
+            expected = artifacts.digest(b'trusted bytes')
+            path = Path(temp) / '.cache/artifacts' / expected
+            path.parent.mkdir(parents=True)
+            path.write_bytes(b'trusted bytes')
+            item = {'sha256': expected, 'url': 'https://example.invalid/never-requested'}
+            self.assertEqual(artifacts.download(item), path)
+            path.write_bytes(b'altered bytes')
+            with self.assertRaisesRegex(ValueError, 'SHA-256 mismatch'):
+                artifacts.download(item)
+
     def test_archive_traversal_rejected(self):
         import io
         import tarfile

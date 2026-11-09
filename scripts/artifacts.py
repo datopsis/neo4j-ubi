@@ -78,9 +78,9 @@ def extract(archive, destination):
 
 
 def manifest(bundle):
-    files = sorted(p for p in bundle.rglob('*') if p.is_file() and p.name != 'SHA256SUMS')
-    if any(p.is_symlink() for p in bundle.rglob('*')):
-        raise ValueError('bundle must contain no symlinks')
+    files = sorted(p for p in bundle.rglob('*') if p.is_file() and p != bundle / 'SHA256SUMS')
+    if any(p.is_symlink() or not (p.is_file() or p.is_dir()) for p in bundle.rglob('*')):
+        raise ValueError('bundle must contain only regular files and directories')
     return ''.join(f'{digest(p.read_bytes())}  {p.relative_to(bundle)}\n' for p in files).encode()
 
 
@@ -174,6 +174,8 @@ def validate(lock):
                 walk(item)
     walk(lock)
     for arch, item in lock['architectures'].items():
+        if item['jre']['signer'] != ADOPTIUM:
+            raise ValueError('unexpected JRE publisher identity')
         if {p['name'] for p in item['rpms']} != {'libstdc++', 'zlib'}:
             raise ValueError('unexpected runtime RPM set')
         for rpm in item['rpms']:

@@ -11,8 +11,8 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN test -n "${BUNDLE_SHA256}" \
     && echo "${BUNDLE_SHA256}  /bundle/SHA256SUMS" | sha256sum --check --strict - \
     && cd /bundle && sha256sum --check --strict SHA256SUMS \
-    && test "$(find . -type f ! -name SHA256SUMS | wc -l)" = "$(wc -l < SHA256SUMS)" \
-    && test -z "$(find . -type l -print -quit)" \
+    && test "$(find . -type f ! -path ./SHA256SUMS | wc -l)" = "$(wc -l < SHA256SUMS)" \
+    && test -z "$(find . ! -type f ! -type d -print -quit)" \
     && rpmkeys --root /final --checksig /bundle/rpms/*.rpm \
     && rpm --root /final --upgrade /bundle/rpms/*.rpm \
     && mkdir -p /final/opt /final/data /final/import /final/run/neo4j \
@@ -41,6 +41,8 @@ LABEL org.opencontainers.image.title="Neo4j Community on UBI 9" \
       io.datopsis.artifact-lock.sha256="${LOCK_SHA256}" \
       io.datopsis.ubi.runtime="${UBI_MICRO_IMAGE}"
 COPY --from=builder /final/ /
+# COPY overlays a base; it does not propagate deletions made in /final.
+RUN rm -rf /etc/yum.repos.d /etc/pki/rpm-gpg /etc/rhsm /etc/dnf
 COPY --chmod=0555 container/entrypoint.sh /usr/local/bin/neo4j-entrypoint
 COPY --chmod=0555 container/healthcheck.sh /usr/local/bin/neo4j-healthcheck
 COPY --chmod=0444 container/neo4j.conf container/logs.xml /etc/neo4j/

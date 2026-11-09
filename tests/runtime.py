@@ -20,7 +20,12 @@ password = '-' + secrets.token_urlsafe(32) + '"#\\ space'
 
 
 def run(*args, check=True):
-    return subprocess.run([RUNTIME, *args], check=check, text=True, capture_output=True, timeout=90)
+    result = subprocess.run([RUNTIME, *args], check=False, text=True, capture_output=True, timeout=90)
+    if check and result.returncode:
+        output = result.stdout + result.stderr
+        assert password not in output, 'credential leaked in failed command output'
+        raise RuntimeError(f'{RUNTIME} {args[0]} failed ({result.returncode}): {output}')
+    return result
 
 
 def volume():
@@ -157,7 +162,7 @@ def main():
         run('exec', name, '/usr/local/bin/neo4j-healthcheck')
         # Every live process, including the launcher and JVM, must be unprivileged.
         process_check = r'''
-set -eu
+set -eux
 readonly_root=false
 while read -r _ _ _ _ target options _; do
   if [[ $target == / && ,$options, == *,ro,* ]]; then readonly_root=true; fi

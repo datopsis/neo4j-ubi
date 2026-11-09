@@ -71,7 +71,15 @@ jobs:
           docker save -o "$RUNNER_TEMP/image.tar" "$IMAGE"
       - name: Restricted runtime and real database tests
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
-        run: python3 tests/runtime.py | tee reports/runtime.txt
+        run: python3 tests/runtime.py 2>&1 | tee reports/runtime.txt
+      - name: Retain runtime diagnostics before scans
+        if: ${{ !cancelled() && steps.export.outcome == 'success' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: runtime-${{ matrix.arch }}
+          path: reports/runtime.txt
+          if-no-files-found: error
+          retention-days: 14
       - name: Download Syft
         if: ${{ !cancelled() && steps.export.outcome == 'success' }}
         id: syft

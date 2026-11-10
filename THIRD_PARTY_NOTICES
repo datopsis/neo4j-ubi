@@ -1,0 +1,32 @@
+Third-party notices
+==================
+
+Repository packaging: Apache License 2.0 (LICENSE). This does not relicense
+Neo4j, the JVM, UBI, or their dependencies.
+
+Neo4j Community Edition 2026.10.2: GNU General Public License, version 3 or
+(at your option) any later version (SPDX: GPL-3.0-or-later).
+Verified from LICENSE.txt and the licence header in bin/neo4j in the exact
+locked Community archive. Upstream source: https://github.com/neo4j/neo4j/tree/2026.10.2
+Archive: https://dist.neo4j.org/neo4j-community-2026.10.2-unix.tar.gz
+The image preserves /opt/neo4j/LICENSE.txt and /opt/neo4j/ThirdPartyLicenses.txt.
+Optional labs/products bundles are excluded. No Enterprise distribution or
+commercial licence acceptance is included. Neo4j is a trademark of Neo4j, Inc.
+
+Eclipse Temurin OpenJDK JRE 25.0.5+8: principally GPL version 2 with the
+Classpath Exception (SPDX: GPL-2.0-with-classpath-exception); bundled components
+have additional licences. Preserve /opt/java/legal and /opt/java/release.
+Source: https://github.com/adoptium/jdk25u/tree/jdk-25.0.5%2B8
+Build project: https://github.com/adoptium/temurin-build
+Distribution: https://github.com/adoptium/temurin25-binaries/releases/tag/jdk-25.0.5%2B8
+
+Red Hat UBI 9.8 and added libstdc++/zlib RPMs retain their respective licences,
+RPM inventory and /usr/share/licenses contents. Red Hat UBI terms:
+https://www.redhat.com/en/about/agreements
+Red Hat container sources: https://catalog.redhat.com/software/containers
+
+This repository does not redistribute downloaded binary archives or publish
+an image in this increment. Before any binary/image distribution, arrange
+corresponding source delivery and all required licence notices for Neo4j,
+OpenJDK, UBI and dependencies. An upstream source link alone is not claimed to
+fulfil a distributor's source-delivery obligations. See docs/ROADMAP.md.

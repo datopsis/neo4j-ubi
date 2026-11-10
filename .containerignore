@@ -1,0 +1,6 @@
+*
+!Containerfile
+!container/**
+!LICENSE
+!THIRD_PARTY_NOTICES
+!.artifact-bundle/**

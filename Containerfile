@@ -4,10 +4,13 @@ FROM ${UBI_MICRO_IMAGE} AS micro
 FROM ${UBI_MINIMAL_IMAGE} AS builder
 ARG TARGETARCH
 ARG BUNDLE_SHA256
+ARG NEO4J_VERSION
 COPY .artifact-bundle/${TARGETARCH}/ /bundle/
 COPY --from=micro / /final/
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # The manifest digest is locked, not generated from arbitrary build-context files.
+# Verify the complete bundle BEFORE excluding exactly the reviewed Parquet jar.
+# Any Neo4j upgrade or changed jar set requires revisiting docs/KNOWN-FINDINGS.md.
 RUN test -n "${BUNDLE_SHA256}" \
     && echo "${BUNDLE_SHA256}  /bundle/SHA256SUMS" | sha256sum --check --strict - \
     && cd /bundle && sha256sum --check --strict SHA256SUMS \
@@ -15,8 +18,13 @@ RUN test -n "${BUNDLE_SHA256}" \
     && test -z "$(find . ! -type f ! -type d -print -quit)" \
     && rpmkeys --root /final --checksig /bundle/rpms/*.rpm \
     && rpm --root /final --upgrade /bundle/rpms/*.rpm \
-    && mkdir -p /final/opt /final/data /final/import /final/run/neo4j \
+    && mkdir -p /final/opt /final/data /final/import /final/run/neo4j
+RUN { test "${NEO4J_VERSION}" = "2026.10.2" \
+         && test "$(find /bundle/neo4j -iname '*parquet-jackson*.jar' -print)" = "/bundle/neo4j/lib/parquet-jackson-1.18.1.jar"; \
+    } || { echo 'Revisit the parquet-jackson exclusion in docs/KNOWN-FINDINGS.md' >&2; exit 1; }; \
+    rm -- /bundle/neo4j/lib/parquet-jackson-1.18.1.jar \
     && cp -a /bundle/neo4j /final/opt/neo4j \
+    && test -z "$(find /final/opt/neo4j -iname '*parquet-jackson*.jar' -print -quit)" \
     && cp -a /bundle/jre /final/opt/java \
     && rm -rf /final/etc/yum.repos.d /final/etc/pki/rpm-gpg /final/etc/rhsm /final/etc/dnf \
     && rpm --root /final -qa 'gpg-pubkey*' > /tmp/keys \

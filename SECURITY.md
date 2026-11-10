@@ -17,6 +17,15 @@ use. Target remediation once fixes exist: 7 days for Critical/known exploited,
 14 days for High, 30 days for other findings. This is a maintenance target, not
 a support SLA for an unreleased image.
 
+The image excludes `parquet-jackson-1.18.1.jar` from the verified Neo4j bundle
+at assembly time for CVE-2026-89407, CVE-2026-89425, CVE-2026-91776 and
+CVE-2026-91777. No replacement jar, finding exception or scanner bypass is used.
+Parquet import and its metadata/key tooling are unavailable and outside this
+console-server profile; APOC/custom plugins and admin import/export workflows
+are unsupported. See [dependency assessment and removal](docs/KNOWN-FINDINGS.md).
+Revisit on every Neo4j upgrade and when upstream bundles Jackson 2.22.3 or newer;
+restoration requires both architectures' runtime and scanner evidence.
+
 The image enforces non-root startup, explicit data mounting and credentials.
 The operator supplies read-only secrets, durable storage, read-only-root/capability
 runtime restrictions, network isolation, encrypted remote transport, backups,

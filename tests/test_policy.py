@@ -1,9 +1,12 @@
 import copy
 import importlib.util
 import json
+import os
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -58,6 +61,55 @@ class PolicyTests(unittest.TestCase):
                 tar.addfile(item, io.BytesIO(b'x'))
             with self.assertRaises(ValueError):
                 module('artifacts').extract(path, Path(temp) / 'output')
+
+    def test_parquet_exclusion_requires_review_for_changed_inputs(self):
+        # Execute the actual Containerfile exclusion, stopping before image copy.
+        containerfile = (ROOT / 'Containerfile').read_text()
+        exclusion = containerfile.split('RUN { test ', 1)[1].split('    && cp -a /bundle/neo4j', 1)[0]
+        exclusion = ('{ test ' + exclusion).replace('\\\n', '')
+        for case in ('current', 'neo4j-upgrade', 'parquet-upgrade', 'missing', 'extra'):
+            with self.subTest(case=case), tempfile.TemporaryDirectory() as temp:
+                bundle = Path(temp) / 'bundle'
+                lib = bundle / 'neo4j/lib'
+                lib.mkdir(parents=True)
+                other = lib / 'parquet-hadoop-1.18.1.jar'
+                other.write_bytes(b'retain unchanged')
+                excluded = lib / 'parquet-jackson-1.18.1.jar'
+                if case != 'missing':
+                    excluded.write_bytes(b'excluded')
+                if case == 'parquet-upgrade':
+                    excluded.rename(lib / 'parquet-jackson-1.18.2.jar')
+                if case == 'extra':
+                    plugins = bundle / 'neo4j/plugins'
+                    plugins.mkdir()
+                    (plugins / 'parquet-jackson-1.18.2.jar').write_bytes(b'new copy')
+                version = '2026.11.0' if case == 'neo4j-upgrade' else '2026.10.2'
+                result = subprocess.run(['bash', '-o', 'pipefail', '-c', exclusion.replace('/bundle', str(bundle))],
+                                        env={**os.environ, 'NEO4J_VERSION': version}, capture_output=True, text=True)
+                self.assertEqual(other.read_bytes(), b'retain unchanged')
+                if case == 'current':
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertFalse(excluded.exists())
+                else:
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn('Revisit the parquet-jackson exclusion', result.stderr)
+                    if case in ('neo4j-upgrade', 'extra'):
+                        self.assertTrue(excluded.exists(), 'reject before removing anything')
+
+    def test_server_logs_reject_class_loading_errors(self):
+        spec = importlib.util.spec_from_file_location('runtime', ROOT / 'tests/runtime.py')
+        runtime = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(runtime)
+        with patch.object(runtime, 'logs', return_value='INFO Started.\n'):
+            runtime.clean_server_logs('test')
+        for output in ('INFO Starting...\n',
+                       'INFO Started.\njava.lang.NoClassDefFoundError: shaded/parquet/Mapper',
+                       'INFO Started.\njava.lang.ClassNotFoundException: example.Class',
+                       'INFO Started.\njava.lang.NoSuchMethodError: example.method',
+                       'INFO Started.\nFailed to load procedure class example.Procedure'):
+            with self.subTest(output=output), patch.object(runtime, 'logs', return_value=output):
+                with self.assertRaises(AssertionError):
+                    runtime.clean_server_logs('test')
 
     def test_scan_gate_blocks_each_scanner(self):
         scanner = module('scan_gate')

@@ -9,6 +9,11 @@ were read as design guidance; there is no code or workflow dependency on them.
    reports, preserve unfixed findings, and remediate fixed High/Critical findings.
    Confirm the guarded credential, real Cypher, restart and constrained-runtime
    evidence at the exact PR commit. Expand hostile credential/configuration tests.
+   Re-check the [Parquet Jackson exclusion](KNOWN-FINDINGS.md) on every Neo4j
+   upgrade, including dependencies and supported features. Revisit restoration
+   when a Neo4j/Parquet release bundles Jackson 2.22.3 or newer; require both
+   architectures' full runtime suites and unchanged Trivy/Grype gates before
+   changing the version guard or restoring the jar.
 2. Produce scoped SCAP evidence: agree rule selection, pin scanner/content,
    assess the actual image filesystem on each architecture, document exclusions
    and host/orchestrator responsibilities. Do not translate results into STIG

@@ -3,6 +3,7 @@
 import base64
 import json
 import os
+import re
 import secrets
 import subprocess
 import tempfile
@@ -58,6 +59,20 @@ def logs(name):
     return result.stdout + result.stderr
 
 
+def clean_server_logs(name):
+    output = logs(name)
+    assert re.search(r'\bStarted\.', output), 'missing successful server startup: ' + output
+    errors = re.compile(
+        r'ClassNotFoundException|NoClassDefFoundError|LinkageError|NoSuchMethodError|'
+        r'NoSuchFieldError|ExceptionInInitializerError|BootstrapMethodError|'
+        r'IncompatibleClassChangeError|AbstractMethodError|IllegalAccessError|'
+        r'UnsatisfiedLinkError|VerifyError|ClassFormatError|UnsupportedClassVersionError|'
+        r'(?:failed|unable|could not|cannot) to (?:load|initialize|link) (?:[^\n]*?class)',
+        re.IGNORECASE)
+    assert not errors.search(output), 'class-loading error in server logs: ' + output
+    print('PASS clean server logs: startup confirmed, no class-loading errors')
+
+
 def rejected(name, message):
     result = run('wait', name)
     assert result.stdout.strip() not in ('0', ''), f'{name} unexpectedly succeeded'
@@ -91,6 +106,7 @@ def ready(name):
         try:
             result = request(name, 'RETURN 1')
             if not result['errors']:
+                clean_server_logs(name)
                 return
         except (urllib.error.URLError, OSError):
             pass
@@ -110,7 +126,7 @@ def stop(name):
     run('stop', '--time=45', name)
     state = json.loads(run('inspect', name).stdout)[0]['State']
     assert state['ExitCode'] == 0 and not state.get('OOMKilled', False), state
-    logs(name)
+    clean_server_logs(name)
     run('rm', name)
     containers.remove(name)
 
@@ -184,9 +200,14 @@ test ! -e /run/neo4j/initial-password.args
 test -r /opt/neo4j/native/libjnidispatch.so
 test ! -w /opt/neo4j/native/libjnidispatch.so
 test ! -d /run/neo4j/.cache/JNA
+# Check all Neo4j directories, including plugins, for reintroduction.
+shopt -s globstar nullglob nocaseglob
+parquet_jars=(/opt/neo4j/**/*parquet-jackson*.jar)
+test "${#parquet_jars[@]}" = 0
 ! touch /etc/read-only-test
 '''
         run('exec', name, 'bash', '-c', process_check)
+        print('PASS parquet-jackson jar absent from image')
         # Secret must not survive in any process argv/environment.
         process = run('exec', name, 'bash', '-c', 'cat /proc/[0-9]*/cmdline /proc/[0-9]*/environ 2>/dev/null || true').stdout
         assert password not in process

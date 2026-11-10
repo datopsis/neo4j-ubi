@@ -2,8 +2,8 @@
 
 Security-oriented Neo4j Community **2026.10.2**, Temurin JRE **25.0.5+8**, and
 Red Hat UBI **9.8 Micro**. This is an unreleased first increment, not a supported
-or certified distribution. The current candidate is blocked by
-[fixed High Jackson findings](docs/KNOWN-FINDINGS.md) on both architectures.
+or certified distribution. The bundled vulnerable Parquet Jackson jar is
+[deliberately excluded](docs/KNOWN-FINDINGS.md); Parquet import is unavailable.
 Repository packaging is Apache-2.0; Neo4j Community
 is **GPL-3.0-or-later**. See [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES).
 
@@ -12,6 +12,16 @@ capabilities. HTTP listens on 7474 and Bolt on 7687. No Enterprise components
 or commercial licence acceptance are included. Optional plugin bundles are
 excluded; arbitrary plugins and arbitrary Neo4j configuration are outside this
 initial fixed profile.
+
+The supported scope of this development profile is the console server,
+authenticated Cypher reads/writes and durable data across restarts with the
+restrictions below. `parquet-jackson-1.18.1.jar` is removed after bundle
+verification to eliminate four fixed High Jackson findings. Offline Parquet
+import (`neo4j-admin database import full --input-type=parquet`) is unavailable.
+Admin import/export workflows, Parquet metadata/key tooling, APOC-style
+procedures and custom plugins are unsupported. The entrypoint permits only
+`console`. Other jars and the server's top-level Jackson are unchanged. Every
+Neo4j upgrade must revisit the exclusion and pass both native CI suites.
 
 ## Build and checks
 

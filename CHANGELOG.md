@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Enforce LF line endings: `.gitattributes` normalizes text to LF, a local
+  pre-commit hook and CI reject any committed CRLF.
 ### Added
 
 - Neo4j Community 2026.10.2 and Temurin JRE 25.0.5+8 on digest-pinned UBI 9.8 Micro.

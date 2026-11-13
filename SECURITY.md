@@ -10,10 +10,42 @@ Enabling that feature or any repository protection is an owner action, not
 something this increment changes.
 
 Trivy and Grype scan each native image and retain complete reports, including
-unfixed findings. Any fixed High/Critical finding from either scanner fails CI.
-No ignore list is used. Missing scan reports also fail. An unfixed finding is
-reported, not declared safe; assess reachability and deployment impact before
-use. Target remediation once fixes exist: 7 days for Critical/known exploited,
+unfixed findings. The owner-approved UBI-installable fix rule applies to
+High/Critical findings on both native architectures:
+
+- A fixable RPM finding blocks when UBI publishes a target-architecture or
+  noarch version at or above any vendor fixed version. Comparison uses librpm's
+  epoch/version/release ordering, not lexical or semantic-version ordering.
+- Only a successful query proving no suitable version exists defers an RPM
+  finding. Deferred findings remain vulnerabilities, with their vendor fixed
+  versions shown in the job summary and retained admission JSON/Markdown.
+- Query errors/timeouts, missing or empty repositories, malformed versions,
+  unknown RPM identity/architecture and incomplete query results block. Fixed
+  non-RPM findings (including jars and language modules) always block as before.
+- Unfixed findings remain reported. Missing/malformed scanner reports fail.
+  No CVE/package/date exceptions, ignore lists, or severity changes are used.
+
+`artifacts/ubi.repo` is the shared repository configuration for RPM lock
+resolution and admission queries. This image's added RPMs come from **UBI 9
+BaseOS only**, expanded separately for x86_64/aarch64; no host, subscription or
+extra repositories are used. Image assembly remains offline from verified,
+pinned inputs. The gate queries fresh metadata in an isolated DNF cache and
+never updates the image or installs packages. Publishing a fix makes the next
+gate block until the lock/image is refreshed and rescanned.
+
+CI repeats every six hours. On scheduled or manual **main** runs only, a tracking
+job creates one issue when deferrals first exist, reuses it, closes it when the
+set is empty, and reopens it for later deferrals. It comments only when the
+deferred set changes (including vendor fix versions); run URLs, ordering,
+unrelated blockers and unfixed changes do not trigger comments. Missing or
+corrupt admission evidence fails the tracking job and preserves the issue;
+it cannot be mistaken for resolution. An empty deferred set does not mean CI
+passes. The tracking job alone has `issues: write`; it is skipped on PRs and
+non-main dispatches, with an independent script guard. Required native and lint
+job names remain unchanged. No GitHub settings or permissions outside the
+workflow's narrowly scoped job token are changed.
+
+Assess reachability and deployment impact before use. Target remediation once fixes exist: 7 days for Critical/known exploited,
 14 days for High, 30 days for other findings. This is a maintenance target, not
 a support SLA for an unreleased image.
 

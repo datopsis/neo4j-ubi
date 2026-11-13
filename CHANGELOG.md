@@ -16,6 +16,17 @@
 
 ### Changed
 
+- Apply the owner-approved UBI-installable fix rule: fixed High/Critical RPMs
+  block when a target-architecture/noarch fix is available from the same UBI
+  BaseOS configuration used for lock resolution; otherwise report them as
+  deferred with vendor versions. Query, version and identity errors fail closed;
+  fixed non-RPM findings continue to block. Scanner settings are unchanged.
+- Recheck native CI every six hours and track changes to the deferred set in one
+  issue from trusted main only. PR jobs remain read-only; required job names stay
+  unchanged. Retain per-finding decisions and repository evidence with scans.
+- Refresh the verified amd64/arm64 RPM locks: libstdc++ 11.5.0-14.el9 to
+  11.5.0-17.el9_9; zlib remains 1.2.11-40.el9. Recompute both bundle manifests.
+
 - Exclude only `parquet-jackson-1.18.1.jar` after full locked-bundle verification
   to remove CVE-2026-89407, CVE-2026-89425, CVE-2026-91776 and CVE-2026-91777
   (shaded Jackson 2.22.2; fixed in 2.22.3). No fixed parquet-jackson release is

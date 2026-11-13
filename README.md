@@ -143,9 +143,13 @@ including transitive dependencies and ShellCheck, is hash pinned in `.txt`.
 
 CI retains per-architecture SPDX SBOMs, complete Trivy/Grype JSON reports and
 runtime output for 14 days. Both scanners report all findings. A separate tested
-gate **fails the job for any fixed High/Critical finding from either scanner**;
-missing/malformed reports fail too. Unfixed findings remain visible. No ignore
-list or report-only exception is used. See [SECURITY.md](SECURITY.md).
+gate **blocks fixed High/Critical non-RPM findings and RPM fixes installable
+from the build's UBI BaseOS repositories**. Only successful negative repository
+queries defer RPM fixes, with vendor versions shown in the job summary. Query,
+version and identity errors fail closed; missing/malformed reports fail too.
+Unfixed and deferred findings remain visible, without ignore lists. Scheduled
+native CI rechecks every six hours; a trusted-main-only job tracks changes to
+the deferred set in one issue. See [SECURITY.md](SECURITY.md).
 
 ## Repository layout
 

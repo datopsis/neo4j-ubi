@@ -14,6 +14,8 @@ import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
 
+from ubi_repos import repositories
+
 ROOT = Path(__file__).resolve().parents[1]
 LOCK = ROOT / 'artifacts/neo4j.lock.json'
 ARCHES = {'amd64': ('x86_64', 'x64'), 'arm64': ('aarch64', 'aarch64')}
@@ -202,7 +204,8 @@ def base(name):
 
 
 def resolve_rpms(architecture):
-    url = f'https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/{architecture}/baseos/os/'
+    arch = next(key for key, value in ARCHES.items() if value[0] == architecture)
+    url = repositories(arch)['baseos']
     ns = {'r': 'http://linux.duke.edu/metadata/repo', 'c': 'http://linux.duke.edu/metadata/common'}
     root = ET.fromstring(get(url + 'repodata/repomd.xml'))
     data = root.find("r:data[@type='primary']", ns)

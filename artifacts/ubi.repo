@@ -1,0 +1,5 @@
+[baseos]
+name=UBI 9 BaseOS
+baseurl=https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/baseos/os/
+enabled=1
+gpgcheck=1

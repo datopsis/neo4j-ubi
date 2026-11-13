@@ -47,10 +47,10 @@
         {
           "name": "libstdc++",
           "architecture": "x86_64",
-          "nevra": "libstdc++-0:11.5.0-14.el9.x86_64",
-          "url": "https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/l/libstdc++-11.5.0-14.el9.x86_64.rpm",
-          "filename": "libstdc++-11.5.0-14.el9.x86_64.rpm",
-          "sha256": "513df35338962e053052b9d52429e8a5f3d60dfe6b1757cd9faaf61d6abda955"
+          "nevra": "libstdc++-0:11.5.0-17.el9_9.x86_64",
+          "url": "https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/l/libstdc++-11.5.0-17.el9_9.x86_64.rpm",
+          "filename": "libstdc++-11.5.0-17.el9_9.x86_64.rpm",
+          "sha256": "9948c922de801f3942efba461793656fbfdf3357786222c348735514536236ce"
         },
         {
           "name": "zlib",
@@ -61,7 +61,7 @@
           "sha256": "baf95ffbf40ee014135f16fe33e343faf7ff1ca06509fd97cd988e6afeabf670"
         }
       ],
-      "bundle_sha256": "c60f280126d8ca47f60f0f15391717f7d3a9f4dc3b691294608df64360446921",
+      "bundle_sha256": "36dc0da6ebb381ec5c0d531bff8f06065b32821a9b3323d782518205e9a8773d",
       "jna": {
         "jar": "jna-5.19.1.jar",
         "member": "com/sun/jna/linux-x86-64/libjnidispatch.so",
@@ -83,10 +83,10 @@
         {
           "name": "libstdc++",
           "architecture": "aarch64",
-          "nevra": "libstdc++-0:11.5.0-14.el9.aarch64",
-          "url": "https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/aarch64/baseos/os/Packages/l/libstdc++-11.5.0-14.el9.aarch64.rpm",
-          "filename": "libstdc++-11.5.0-14.el9.aarch64.rpm",
-          "sha256": "ae00c5009a2ee4682ec732cde66d3f4fcfc1a7099ba7b3701767d1748a4f2683"
+          "nevra": "libstdc++-0:11.5.0-17.el9_9.aarch64",
+          "url": "https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/aarch64/baseos/os/Packages/l/libstdc++-11.5.0-17.el9_9.aarch64.rpm",
+          "filename": "libstdc++-11.5.0-17.el9_9.aarch64.rpm",
+          "sha256": "97894b297866395e9bfa270e4c922f57beea420351b2a0c4db07abaae096ca71"
         },
         {
           "name": "zlib",
@@ -97,7 +97,7 @@
           "sha256": "2e7f193e67235130c10f5579c2d2ec92e22e4098b6d12fb2855d93b1540c60f7"
         }
       ],
-      "bundle_sha256": "ed91168cb9e1976592e8fd2481111621d332f1df6527f7360b70f5704ef86f93",
+      "bundle_sha256": "4a82e175cfe9c2b845f299dfa89cea5b2ff92bd3fb140064c0b2e9d512520bfa",
       "jna": {
         "jar": "jna-5.19.1.jar",
         "member": "com/sun/jna/linux-aarch64/libjnidispatch.so",

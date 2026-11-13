@@ -19,8 +19,12 @@ container on Red Hat UBI 9. Preserve these non-negotiable properties:
 - Durable state requires an explicit volume, never an anonymous image volume.
 - Ship Community only, preserve its GPL-3.0-or-later notices, and never accept
   Enterprise or other commercial terms on the owner's behalf.
-- Trivy AND Grype block fixed High/Critical findings on native amd64 AND arm64.
-  Report unfixed findings in full. Do not suppress them or weaken a check.
+- Trivy AND Grype gate High/Critical findings on native amd64 AND arm64 under
+  the owner-approved UBI-installable fix rule: fixed non-RPM findings block;
+  RPM fixes block when installable from the same UBI repositories used for lock
+  resolution. Only a successful negative query may defer an RPM fix. Query or
+  version/identity errors block. Report deferred vendor fixes and unfixed
+  findings in full; no exemption lists or scanner suppressions.
 - No FIPS, STIG, platform support, or release-readiness claim without evidence.
 
 Follow `docs/ROADMAP.md` and `docs/VERSION.md`. The container-hardening draft
@@ -46,4 +50,6 @@ Use feature branches, PRs and Conventional Commit subjects. No force-push,
 AI/tool-attribution or Co-Authored-By trailers. Do not change repository/org
 settings, secrets, branch protection or permissions; report needs to the owner.
 This increment creates no version, tag, published image, or release workflow.
-A tag must not publish anything. Do not merge the implementation PR.
+Only the scheduled/manual main-branch tracking job may write its tracking issue;
+PR jobs remain read-only. A tag must not publish anything. Do not merge the
+implementation PR.

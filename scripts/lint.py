@@ -17,6 +17,7 @@ for filename in files:
     path = root / filename
     if not path.is_file() or path.suffix == '.asc':
         continue
+    assert b'\r' not in path.read_bytes(), f'{filename}: CRLF/CR line endings'
     text = path.read_text()
     assert text.endswith('\n'), f'{filename}: missing final newline'
     assert all(line == line.rstrip() for line in text.splitlines()), f'{filename}: trailing whitespace'
@@ -33,13 +34,24 @@ for filename in files:
         yaml.safe_load(text)
     if filename.startswith('.github/workflows/'):
         workflow = yaml.safe_load(text)
-        assert workflow['permissions'] == {'contents': 'read'}, 'workflows must be read-only'
+        assert workflow['permissions'] == {'contents': 'read'}, 'workflow default permissions must be read-only'
         assert 'pull_request_target' not in text
         assert 'tags:' not in text and 'conformance.yml' not in text
         for use in re.findall(r'uses:\s*(\S+)', text):
             assert re.fullmatch(r'[^@]+@[a-f0-9]{40}', use), f'unpinned action: {use}'
-        for job in workflow['jobs'].values():
-            assert 'permissions' not in job and 'continue-on-error' not in str(job)
+        for name, job in workflow['jobs'].items():
+            assert 'continue-on-error' not in str(job)
+            if filename == '.github/workflows/ci.yml' and name == 'tracking':
+                assert job['permissions'] == {'contents': 'read', 'issues': 'write'}
+                assert job['if'] == "${{ always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}"
+                assert job['needs'] == ['lint', 'native']
+                assert job['concurrency'] == {'group': 'ubi-fix-tracking', 'cancel-in-progress': False}
+            else:
+                assert 'permissions' not in job, 'only trusted-main tracking can write issues'
+        if filename == '.github/workflows/ci.yml':
+            assert workflow['jobs']['lint']['name'] == 'lint and policy tests'
+            assert workflow['jobs']['native']['name'] == 'native image (${{ matrix.arch }})'
+
 lock = json.loads((root / 'artifacts/neo4j.lock.json').read_text())
 validate(lock)
 containerfile = (root / 'Containerfile').read_text()
